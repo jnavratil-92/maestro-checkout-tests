@@ -11,15 +11,15 @@ writing the Maestro flows.
    go back. Covered by `01_purchase_flow.yaml` (flow 5) and
    `04_promo_code_variations_extra.yaml`.
    ![Fake "Error." after tapping Enter promo](media/findings/promo_decoy_error.jpg)
-   <video src="media/findings/promo_decoy_error.mp4" controls width="360"></video>
+   [Video: the whole flow, ending at "Error."](media/findings/promo_decoy_error.mp4)
 
 2. **The 4th product's (index 3 in code/ids — Statue of Liberty / Ellis
    Island Ferry Tour) "Edit" button does nothing after confirmation.** Tap
    is a silent no-op — no dialog, no change. Covered by
    `05_product_date_dependencies_extra.yaml`, flow 2. For contrast, product 1
    (Madame Tussauds) still opens its edit dialog fine after confirmation.
-   <video src="media/findings/statue_of_liberty_edit_noop.mp4" controls width="360"></video>
-   <video src="media/findings/product1_edit_working_for_contrast.mp4" controls width="360"></video>
+   [Video: Statue of Liberty's Edit does nothing](media/findings/statue_of_liberty_edit_noop.mp4) ·
+   [Video: Madame Tussauds' Edit, for contrast](media/findings/product1_edit_working_for_contrast.mp4)
 
 3. **Language mix: English + Slovak + Czech at once.** Switching to Czech
    on Home leaves the package name in English (`home_screen.dart:71`) and
