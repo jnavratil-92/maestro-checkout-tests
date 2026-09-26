@@ -10,7 +10,7 @@ writing the Maestro flows.
    `Error.`, sets `promoHintUnlocked` (`questions_screen.dart:252`) — then
    go back. Covered by `01_purchase_flow.yaml` (flow 5) and
    `04_promo_code_variations_extra.yaml`.
-   ![Fake "Error." after tapping Enter promo](media/findings/promo_decoy_error.jpg)
+   <img src="media/findings/promo_decoy_error.jpg" width="280" alt="Fake &quot;Error.&quot; after tapping Enter promo"><br>
    [Video: the whole flow, ending at "Error."](media/findings/promo_decoy_error.mp4)
 
 2. **The 4th product's (index 3 in code/ids — Statue of Liberty / Ellis
@@ -29,7 +29,7 @@ writing the Maestro flows.
 4. **Checkout "Country" field stays in Czech even with the app set to
    English.** Contact details on Checkout don't fully respect the English
    locale.
-   ![Country dropdown listing every country in Czech, rest of the screen in English](media/findings/country_field_czech.jpg)
+   <img src="media/findings/country_field_czech.jpg" width="280" alt="Country dropdown listing every country in Czech, rest of the screen in English">
 
 5. **A new order code appears on every declined payment retry.** Expected
    one order code per booking across retries; actual is a different code
@@ -40,7 +40,7 @@ writing the Maestro flows.
    Checkout: all required fields filled, both terms checkboxes ticked,
    correct total shown — the `Error.` banner still shows. Not yet
    root-caused.
-   ![Checkout: all fields filled and both checkboxes ticked, but "Error." still shows above Pay](media/findings/error_despite_all_fields_filled.jpg)
+   <img src="media/findings/error_despite_all_fields_filled.jpg" width="280" alt="Checkout: all fields filled and both checkboxes ticked, but &quot;Error.&quot; still shows above Pay">
 
 7. **Payment screen overflows when validation errors show with the
    keyboard open.** `RenderFlex overflowed by 232 pixels` — the screen body
@@ -48,9 +48,9 @@ writing the Maestro flows.
    Same root cause as the font-scaling overflow below, different trigger.
    Not asserted in a flow (brittle across screen sizes); the validation
    path itself is covered by `02_payment_declined_bonus.yaml`.
-   ![Payment screen, 232px overflow](media/findings/payment_overflow_232px.jpg)
-   ![Payment screen, 59px overflow with fields partly filled](media/findings/payment_overflow_59px.jpg)
-   ![Payment screen, 9.5px overflow with a valid card filled in](media/findings/payment_overflow_9.5px.jpg)
+   <img src="media/findings/payment_overflow_232px.jpg" width="280" alt="Payment screen, 232px overflow">
+   <img src="media/findings/payment_overflow_59px.jpg" width="280" alt="Payment screen, 59px overflow with fields partly filled">
+   <img src="media/findings/payment_overflow_9.5px.jpg" width="280" alt="Payment screen, 9.5px overflow with a valid card filled in">
 
 8. **Several required-field errors have no dedicated id.** Only
    `Questions_ValidationError` (`booking_ids.dart:56`) has one. Checkout's
@@ -87,7 +87,7 @@ of the overflow above (no crash, content just gets clipped).
 1. **Language toggle shows the next option, not the current selection.**
    Top-right button should reflect the active language, not the one you'd
    switch to.
-   ![Home screen, English content, toggle reads "CS" — the language you'd switch to, not the active one](media/findings/language_toggle_shows_next_option.jpg)
+   <img src="media/findings/language_toggle_shows_next_option.jpg" width="280" alt="Home screen, English content, toggle reads &quot;CS&quot; — the language you'd switch to, not the active one">
 
 2. **"How will you be arriving" is free text, not preselected options.**
    Free text makes responses hard to aggregate across bookings; preselected
