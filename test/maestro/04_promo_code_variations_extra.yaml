@@ -1,0 +1,134 @@
+# =============================================================================
+# TEST: Promo Code - Invalid, Applied & Removed
+# =============================================================================
+# Purpose: Validate promo code edge cases beyond the happy path already
+#          covered in 01_purchase_flow.yaml.
+# Coverage:
+#   - An invalid code is silently rejected (price unchanged, "Enter promo"
+#     stays available for another attempt)
+#   - A valid code is applied (price -> free) and then removed again
+#     (price fully reverts, not partially discounted or stuck at zero)
+# Tags: checkout, promo-code
+# =============================================================================
+
+appId: com.ventrata.maestro_booking_demo
+tags:
+  - checkout
+  - promo-code
+---
+- runScript: variables.js
+
+# Flow 1: Set up a 1-adult booking, note the real undiscounted price
+- runFlow:
+    file: subflows/setup_single_ticket_checkout.yaml
+- scrollUntilVisible:
+    element:
+      id: ${output.ids.checkout.priceTotal}
+    direction: DOWN
+- assertVisible:
+    id: ${output.ids.checkout.priceTotal}
+    text: ${output.prices.oneAdult}
+
+# Flow 2: Invalid code is rejected, price unaffected, button stays
+# available. The promo field doesn't exist on Questions until this exact
+# sequence unlocks it: tap "enter promo" here, then go back (see FINDINGS.md).
+- runFlow:
+    label: "Invalid code: rejected, price unaffected, button stays available"
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: ${output.ids.checkout.enterPromoButton}
+          direction: DOWN
+      - tapOn:
+          id: ${output.ids.checkout.enterPromoButton}
+      - back
+      - assertVisible:
+          id: ${output.ids.questions.page}
+      - scrollUntilVisible:
+          element:
+            id: ${output.ids.questions.promoCodeField}
+          direction: DOWN
+      - tapOn:
+          id: ${output.ids.questions.promoCodeField}
+      - inputText: "NOTAREALCODE"
+      - hideKeyboard
+      - tapOn:
+          id: ${output.ids.questions.continueButton}
+      - extendedWaitUntil:
+          visible:
+            id: ${output.ids.checkout.page}
+          timeout: ${output.timeouts.screenTransition}
+      - assertNotVisible:
+          id: ${output.ids.checkout.promoAppliedChip}
+      - scrollUntilVisible:
+          element:
+            id: ${output.ids.checkout.priceTotal}
+          direction: DOWN
+      - assertVisible:
+          id: ${output.ids.checkout.priceTotal}
+          text: ${output.prices.oneAdult}
+      - scrollUntilVisible:
+          element:
+            id: ${output.ids.checkout.enterPromoButton}
+          direction: DOWN
+      - assertVisible:
+          id: ${output.ids.checkout.enterPromoButton}
+
+# Flow 3: Valid code this time - price drops to free
+- runFlow:
+    label: "Valid code this time: price drops to free"
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: ${output.ids.checkout.enterPromoButton}
+          direction: DOWN
+      - tapOn:
+          id: ${output.ids.checkout.enterPromoButton}
+      - back
+      - assertVisible:
+          id: ${output.ids.questions.page}
+      - scrollUntilVisible:
+          element:
+            id: ${output.ids.questions.promoCodeField}
+          direction: DOWN
+      # Long-press ideally selects the whole word, but not every keyboard
+      # does that the same way — erase a generous count so it clears
+      # either way (extra erases on an empty field are harmless no-ops)
+      - longPressOn:
+          id: ${output.ids.questions.promoCodeField}
+      - eraseText: 20
+      - inputText: "MAESTROFREE"
+      - hideKeyboard
+      - tapOn:
+          id: ${output.ids.questions.continueButton}
+      - extendedWaitUntil:
+          visible:
+            id: ${output.ids.checkout.page}
+          timeout: ${output.timeouts.screenTransition}
+      - scrollUntilVisible:
+          element:
+            id: ${output.ids.checkout.promoAppliedChip}
+          direction: DOWN
+      - assertVisible:
+          id: ${output.ids.checkout.promoAppliedChip}
+      - assertVisible:
+          id: ${output.ids.checkout.priceTotal}
+          text: ${output.prices.free}
+
+# Flow 4: Removing the applied code must fully restore the original price
+- runFlow:
+    label: "Removing the applied code must fully restore the original price"
+    commands:
+      - tapOn:
+          id: ${output.ids.checkout.removePromoButton}
+      - assertNotVisible:
+          id: ${output.ids.checkout.promoAppliedChip}
+      - assertVisible:
+          id: ${output.ids.checkout.priceTotal}
+          text: ${output.prices.oneAdult}
+      - scrollUntilVisible:
+          element:
+            id: ${output.ids.checkout.enterPromoButton}
+          direction: DOWN
+      - assertVisible:
+          id: ${output.ids.checkout.enterPromoButton}

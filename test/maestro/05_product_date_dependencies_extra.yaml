@@ -1,0 +1,215 @@
+# =============================================================================
+# TEST: DateTime - Product Date/Time Dependencies
+# =============================================================================
+# Purpose: Validate the non-obvious relationships between the 4 products'
+#          dates/times — none of this is covered by 01_purchase_flow.yaml,
+#          which only ever sets each date once.
+# Coverage:
+#   - Re-confirming product 0's date invalidates every other confirmed
+#     product, even when re-picking the exact same date
+#   - Hop-on Hop-off's (product 2) offered timeslots are computed from
+#     Madame Tussauds' (product 1) confirmed time (2h-later window), not a
+#     fixed list
+#   - Re-confirming product 1's time invalidates product 2's now-stale time
+#   - Force-closed timeslots show a message with no slots and no save
+#   - Product 3's post-confirmation button (labelled "Edit") opens no
+#     dialog and changes nothing — see FINDINGS.md
+# Tags: date-time, dependencies
+# =============================================================================
+
+appId: com.ventrata.maestro_booking_demo
+tags:
+  - date-time
+  - dependencies
+---
+- runScript: variables.js
+
+# Flow 1: Set up - confirm products 0, 1 (14:00) and 3
+- runFlow:
+    label: "Setup: confirm products 0, 1 (14:00) and 3"
+    commands:
+      - runFlow:
+          file: subflows/navigate_home_to_tickets.yaml
+      - tapOn:
+          id: ${output.ids.tickets.adultPlus}
+      - tapOn:
+          id: ${output.ids.tickets.continueButton}
+
+      - extendedWaitUntil:
+          visible:
+            id: ${output.ids.dateTime.page}
+          timeout: ${output.timeouts.screenTransition}
+      # Force timeslots open regardless of wall clock (see README)
+      - tapOn:
+          id: ${output.ids.debug.setForceOpenButton}
+
+      # Confirm product 0 (Empire State): calendar opens with today
+      # pre-selected and Save already enabled.
+      - scrollUntilVisible:
+          element:
+            id: ${output.ids.dateTime.productSelectButton(0)}
+          direction: UP
+      - tapOn:
+          id: ${output.ids.dateTime.productSelectButton(0)}
+      - assertVisible:
+          id: ${output.ids.calendar.dialog}
+      - tapOn:
+          id: ${output.ids.calendar.saveButton}
+      - assertVisible:
+          id: ${output.ids.dateTime.productConfirmedDate(0)}
+
+      # Confirm product 1 (Madame Tussauds) at 14:00
+      - scrollUntilVisible:
+          element:
+            id: ${output.ids.dateTime.productSelectButton(1)}
+          direction: DOWN
+      - tapOn:
+          id: ${output.ids.dateTime.productSelectButton(1)}
+      - tapOn:
+          id: ${output.ids.timeslot.slot("14:00")}
+      - tapOn:
+          id: ${output.ids.timeslot.saveButton}
+      - assertVisible:
+          id: ${output.ids.dateTime.productConfirmedDate(1)}
+
+      # Confirm product 3 (Statue of Liberty) - confirms immediately
+      - scrollUntilVisible:
+          element:
+            id: ${output.ids.dateTime.productSelectButton(3)}
+          direction: DOWN
+      - tapOn:
+          id: ${output.ids.dateTime.productSelectButton(3)}
+      - assertVisible:
+          id: ${output.ids.dateTime.productConfirmedDate(3)}
+
+# Flow 2: Product 3's "Edit" button opens no dialog and changes nothing (see FINDINGS.md)
+- runFlow:
+    label: 'Product 3''s "Edit" button opens no dialog and changes nothing'
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: ${output.ids.dateTime.productSelectButton(3)}
+          direction: DOWN
+      - tapOn:
+          id: ${output.ids.dateTime.productSelectButton(3)}
+      - assertNotVisible:
+          id: ${output.ids.calendar.dialog}
+      - assertNotVisible:
+          id: ${output.ids.timeslot.dialog}
+      - assertVisible:
+          id: ${output.ids.dateTime.productConfirmedDate(3)}
+
+# Flow 3: Hop-on Hop-off's offered slots depend on Madame Tussauds' time (14:00 -> window 16:00-18:00)
+- runFlow:
+    label: "Hop-on Hop-off's offered slots depend on Madame Tussauds' time"
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: ${output.ids.dateTime.productSelectButton(2)}
+          direction: DOWN
+      - tapOn:
+          id: ${output.ids.dateTime.productSelectButton(2)}
+      - assertVisible:
+          id: ${output.ids.timeslot.dialog}
+      - assertNotVisible:
+          id: ${output.ids.timeslot.slot("10:00")}
+      - assertNotVisible:
+          id: ${output.ids.timeslot.slot("14:00")}
+      - assertVisible:
+          id: ${output.ids.timeslot.slot("16:00")}
+      - tapOn:
+          id: ${output.ids.timeslot.slot("16:00")}
+      - tapOn:
+          id: ${output.ids.timeslot.saveButton}
+      - assertVisible:
+          id: ${output.ids.dateTime.productConfirmedDate(2)}
+
+# Flow 4: Re-confirming product 1 invalidates product 2's now-stale time
+- runFlow:
+    label: "Re-confirming product 1 invalidates product 2's now-stale time"
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: ${output.ids.dateTime.productSelectButton(1)}
+          direction: UP
+      - tapOn:
+          id: ${output.ids.dateTime.productSelectButton(1)}
+      - tapOn:
+          id: ${output.ids.timeslot.slot("16:00")}
+      - tapOn:
+          id: ${output.ids.timeslot.saveButton}
+      - assertVisible:
+          id: ${output.ids.dateTime.productConfirmedDate(1)}
+      - assertNotVisible:
+          id: ${output.ids.dateTime.productConfirmedDate(2)}
+
+# Flow 5: Re-confirming product 0 (same date) invalidates every other product
+- runFlow:
+    label: "Re-confirming product 0 invalidates every other product"
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: ${output.ids.dateTime.productSelectButton(0)}
+          direction: UP
+      - tapOn:
+          id: ${output.ids.dateTime.productSelectButton(0)}
+      - assertVisible:
+          id: ${output.ids.calendar.dialog}
+      - tapOn:
+          id: ${output.ids.calendar.saveButton}
+      - assertVisible:
+          id: ${output.ids.dateTime.productConfirmedDate(0)}
+      - assertNotVisible:
+          id: ${output.ids.dateTime.productConfirmedDate(1)}
+      - assertNotVisible:
+          id: ${output.ids.dateTime.productConfirmedDate(3)}
+
+# Flow 6: Re-confirm what's required so the flow ends in a valid state
+- runFlow:
+    label: "Re-confirm what's required so the flow ends in a valid state"
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: ${output.ids.dateTime.productSelectButton(1)}
+          direction: DOWN
+      - tapOn:
+          id: ${output.ids.dateTime.productSelectButton(1)}
+      - tapOn:
+          id: ${output.ids.timeslot.slot("10:00")}
+      - tapOn:
+          id: ${output.ids.timeslot.saveButton}
+      - assertVisible:
+          id: ${output.ids.dateTime.productConfirmedDate(1)}
+      - scrollUntilVisible:
+          element:
+            id: ${output.ids.dateTime.productSelectButton(3)}
+          direction: DOWN
+      - tapOn:
+          id: ${output.ids.dateTime.productSelectButton(3)}
+      - assertVisible:
+          id: ${output.ids.dateTime.productConfirmedDate(3)}
+
+# Flow 7: Force-closed timeslots - a message, no slots, nothing to tap
+- runFlow:
+    label: "Force-closed timeslots: a message, no slots, nothing to tap"
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: ${output.ids.debug.setForceClosedButton}
+          direction: UP
+      - tapOn:
+          id: ${output.ids.debug.setForceClosedButton}
+      - scrollUntilVisible:
+          element:
+            id: ${output.ids.dateTime.productSelectButton(1)}
+          direction: DOWN
+      - tapOn:
+          id: ${output.ids.dateTime.productSelectButton(1)}
+      - assertVisible:
+          id: ${output.ids.timeslot.closedMessage}
+      - assertNotVisible:
+          id: ${output.ids.timeslot.saveButton}
+      - tapOn:
+          text: ${output.texts.closeButton}
+      - assertVisible:
+          id: ${output.ids.dateTime.page}

@@ -1,0 +1,26 @@
+# =============================================================================
+# SUBFLOW: Confirm Product 0 Date
+# =============================================================================
+# Purpose: Open the calendar for product 0 (Empire State Building) and
+#          confirm it. The dialog opens with "today" pre-selected and Save
+#          already enabled, so no day needs to be tapped explicitly.
+# Requires: output.ids loaded by the caller; the DateTime screen visible.
+# Note: also used to *re*-confirm an already-set date — this clears every
+#       other product's confirmed date/time, by design (see
+#       05_product_date_dependencies_extra.yaml).
+# =============================================================================
+
+appId: com.ventrata.maestro_booking_demo
+---
+- scrollUntilVisible:
+    element:
+      id: ${output.ids.dateTime.productSelectButton(0)}
+    direction: UP
+- tapOn:
+    id: ${output.ids.dateTime.productSelectButton(0)}
+- assertVisible:
+    id: ${output.ids.calendar.dialog}
+- tapOn:
+    id: ${output.ids.calendar.saveButton}
+- assertVisible:
+    id: ${output.ids.dateTime.productConfirmedDate(0)}

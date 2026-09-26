@@ -1,0 +1,67 @@
+# =============================================================================
+# SUBFLOW: Setup Single Ticket to Checkout
+# =============================================================================
+# Purpose: Shared setup for flows that only need a minimal 1-adult booking
+#          to reach Checkout — navigate to Tickets, select 1 adult, confirm
+#          products 0/1 (10:00)/3, fill only the required Questions fields,
+#          and wait for Checkout. Used by 02_payment_declined_bonus.yaml
+#          and 04_promo_code_variations_extra.yaml.
+# Requires: output.ids and output.timeouts loaded by the caller.
+# =============================================================================
+
+appId: com.ventrata.maestro_booking_demo
+---
+- runFlow:
+    file: navigate_home_to_tickets.yaml
+- tapOn:
+    id: ${output.ids.tickets.adultPlus}
+- tapOn:
+    id: ${output.ids.tickets.continueButton}
+
+- extendedWaitUntil:
+    visible:
+      id: ${output.ids.dateTime.page}
+    timeout: ${output.timeouts.screenTransition}
+# Force timeslots open regardless of wall clock (see README)
+- tapOn:
+    id: ${output.ids.debug.setForceOpenButton}
+- runFlow:
+    file: confirm_product0_date.yaml
+- runFlow:
+    file: confirm_product1_timeslot.yaml
+    env:
+      TIMESLOT: "10:00"
+- runFlow:
+    file: confirm_product3.yaml
+- tapOn:
+    id: ${output.ids.dateTime.continueButton}
+
+- extendedWaitUntil:
+    visible:
+      id: ${output.ids.questions.page}
+    timeout: ${output.timeouts.screenTransition}
+- tapOn:
+    id: ${output.ids.questions.bookingTextArea}
+- inputText: "By taxi."
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: ${output.ids.questions.bookingSelect}
+    direction: DOWN
+- tapOn:
+    id: ${output.ids.questions.bookingSelect}
+- tapOn:
+    text: ${output.texts.friendOrFamilyOption}
+- scrollUntilVisible:
+    element:
+      id: ${output.ids.questions.perTicketConfirmCheckbox(0)}
+    direction: DOWN
+- tapOn:
+    id: ${output.ids.questions.perTicketConfirmCheckbox(0)}
+- tapOn:
+    id: ${output.ids.questions.continueButton}
+
+- extendedWaitUntil:
+    visible:
+      id: ${output.ids.checkout.page}
+    timeout: ${output.timeouts.screenTransition}

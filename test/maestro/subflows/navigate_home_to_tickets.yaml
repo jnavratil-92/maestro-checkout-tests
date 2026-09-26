@@ -1,0 +1,20 @@
+# =============================================================================
+# SUBFLOW: Navigate Home to Tickets
+# =============================================================================
+# Purpose: Launch the app fresh, switch to English, select the NYC Icons
+#          Express package, and land on the Tickets screen.
+# Requires: the caller must have already run variables.js.
+# =============================================================================
+
+appId: com.ventrata.maestro_booking_demo
+---
+- launchApp:
+    clearState: true
+- assertVisible:
+    id: ${output.ids.home.page}
+- tapOn:
+    id: ${output.ids.home.languageToggleButton}
+- tapOn:
+    id: ${output.ids.home.packageButton}
+- assertVisible:
+    id: ${output.ids.tickets.page}

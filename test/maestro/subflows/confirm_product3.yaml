@@ -1,0 +1,20 @@
+# =============================================================================
+# SUBFLOW: Confirm Product 3
+# =============================================================================
+# Purpose: Confirm product 3 (Statue of Liberty / Ellis Island Ferry Tour).
+#          It has no time selection — its date is locked to product 0's, so
+#          tapping its select button confirms immediately, no dialog.
+# Requires: output.ids loaded by the caller; product 0's date already
+#           confirmed.
+# =============================================================================
+
+appId: com.ventrata.maestro_booking_demo
+---
+- scrollUntilVisible:
+    element:
+      id: ${output.ids.dateTime.productSelectButton(3)}
+    direction: DOWN
+- tapOn:
+    id: ${output.ids.dateTime.productSelectButton(3)}
+- assertVisible:
+    id: ${output.ids.dateTime.productConfirmedDate(3)}

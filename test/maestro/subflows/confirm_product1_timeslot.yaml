@@ -1,0 +1,25 @@
+# =============================================================================
+# SUBFLOW: Confirm Product 1 Timeslot
+# =============================================================================
+# Purpose: Open the timeslot dialog for product 1 (Madame Tussauds) — date
+#          is locked to product 0's, only the time is picked — and confirm
+#          the given slot.
+# Requires: output.ids loaded by the caller; an "HH:MM" string (e.g.
+#           "14:00") passed as env TIMESLOT; product 0's date already
+#           confirmed.
+# =============================================================================
+
+appId: com.ventrata.maestro_booking_demo
+---
+- scrollUntilVisible:
+    element:
+      id: ${output.ids.dateTime.productSelectButton(1)}
+    direction: DOWN
+- tapOn:
+    id: ${output.ids.dateTime.productSelectButton(1)}
+- tapOn:
+    id: ${output.ids.timeslot.slot(TIMESLOT)}
+- tapOn:
+    id: ${output.ids.timeslot.saveButton}
+- assertVisible:
+    id: ${output.ids.dateTime.productConfirmedDate(1)}

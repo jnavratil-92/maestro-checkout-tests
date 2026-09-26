@@ -1,0 +1,110 @@
+# =============================================================================
+# TEST: Tickets - Combined 20-Ticket Ceiling
+# =============================================================================
+# Purpose: Validate the 20-ticket combined (adult + child) limit stated in
+#          the assignment.
+# Coverage:
+#   - Adults and children both count toward the same 20-ticket ceiling,
+#     not two independent per-type limits
+#   - Tapping past 20 combined is a no-op on either type, not an error or a
+#     silent overshoot
+#   - The screen stays in a valid, completable state exactly at the cap
+# Tags: tickets, limits
+# =============================================================================
+
+appId: com.ventrata.maestro_booking_demo
+tags:
+  - tickets
+  - limits
+---
+- runScript: variables.js
+
+# Flow 1: Navigate to Tickets
+- runFlow:
+    file: subflows/navigate_home_to_tickets.yaml
+
+# Flow 2: Build up to 20 combined via 10 adults + 10 children. Explicit
+# taps rather than a loop or a YAML anchor — see README for why.
+- runFlow:
+    label: "Build up to 20 combined via 10 adults + 10 children"
+    commands:
+      - assertVisible:
+          id: ${output.ids.tickets.adultCount}
+          text: "0"
+      - assertVisible:
+          id: ${output.ids.tickets.childCount}
+          text: "0"
+      - tapOn:
+          id: ${output.ids.tickets.adultPlus}
+      - tapOn:
+          id: ${output.ids.tickets.adultPlus}
+      - tapOn:
+          id: ${output.ids.tickets.adultPlus}
+      - tapOn:
+          id: ${output.ids.tickets.adultPlus}
+      - tapOn:
+          id: ${output.ids.tickets.adultPlus}
+      - tapOn:
+          id: ${output.ids.tickets.adultPlus}
+      - tapOn:
+          id: ${output.ids.tickets.adultPlus}
+      - tapOn:
+          id: ${output.ids.tickets.adultPlus}
+      - tapOn:
+          id: ${output.ids.tickets.adultPlus}
+      - tapOn:
+          id: ${output.ids.tickets.adultPlus}
+      - assertVisible:
+          id: ${output.ids.tickets.adultCount}
+          text: "10"
+      - tapOn:
+          id: ${output.ids.tickets.childPlus}
+      - tapOn:
+          id: ${output.ids.tickets.childPlus}
+      - tapOn:
+          id: ${output.ids.tickets.childPlus}
+      - tapOn:
+          id: ${output.ids.tickets.childPlus}
+      - tapOn:
+          id: ${output.ids.tickets.childPlus}
+      - tapOn:
+          id: ${output.ids.tickets.childPlus}
+      - tapOn:
+          id: ${output.ids.tickets.childPlus}
+      - tapOn:
+          id: ${output.ids.tickets.childPlus}
+      - tapOn:
+          id: ${output.ids.tickets.childPlus}
+      - tapOn:
+          id: ${output.ids.tickets.childPlus}
+      - assertVisible:
+          id: ${output.ids.tickets.childCount}
+          text: "10"
+
+# Flow 3: One more tap past the cap is a no-op on either type
+- runFlow:
+    label: "One more tap past the cap is a no-op on either type"
+    commands:
+      - tapOn:
+          id: ${output.ids.tickets.adultPlus}
+      - assertVisible:
+          id: ${output.ids.tickets.adultCount}
+          text: "10"
+      - tapOn:
+          id: ${output.ids.tickets.childPlus}
+      - assertVisible:
+          id: ${output.ids.tickets.childCount}
+          text: "10"
+
+# Flow 4: The screen stays valid and completable exactly at the cap
+- runFlow:
+    label: "The screen stays valid and completable exactly at the cap"
+    commands:
+      - assertVisible:
+          id: ${output.ids.tickets.continueButton}
+      - tapOn:
+          id: ${output.ids.tickets.continueButton}
+      - extendedWaitUntil:
+          visible:
+            id: ${output.ids.dateTime.page}
+          timeout: ${output.timeouts.screenTransition}

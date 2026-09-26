@@ -1,0 +1,100 @@
+# =============================================================================
+# TEST: Payment Screen - Validation & Always-Declined Behaviour
+# =============================================================================
+# Purpose: Exercise the real card Payment screen, which the main purchase
+#          flow deliberately avoids by paying via a promo code instead.
+# Coverage:
+#   - Payment field-level validation (empty card/expiry/cvc errors)
+#   - Card payment is always declined in this build (no valid test card
+#     configured) — Retry returns to an editable Payment screen
+# Tags: payment, negative
+# =============================================================================
+
+appId: com.ventrata.maestro_booking_demo
+tags:
+  - payment
+  - negative
+---
+- runScript: variables.js
+
+# Flow 1: Set up a 1-adult booking through to Checkout
+- runFlow:
+    file: subflows/setup_single_ticket_checkout.yaml
+
+# Flow 2: Fill contact details with no promo, and proceed to Payment. Total
+# stays above zero, so Pay/Confirm routes to the real Payment screen
+# instead of straight to Success.
+- runFlow:
+    label: "Fill contact details, no promo, and proceed to Payment"
+    commands:
+      - tapOn:
+          id: ${output.ids.checkout.firstNameField}
+      - inputText: "Jan"
+      - tapOn:
+          id: ${output.ids.checkout.lastNameField}
+      - inputText: "Novak"
+      - hideKeyboard
+      - tapOn:
+          id: ${output.ids.checkout.countryField}
+      - tapOn:
+          id: ${output.ids.checkout.countryOption("cz")}
+      - tapOn:
+          id: ${output.ids.checkout.stateProvinceField}
+      - inputText: "Prague"
+      - hideKeyboard
+      - scrollUntilVisible:
+          element:
+            id: ${output.ids.checkout.bookingTermsCheckbox}
+          direction: DOWN
+      - tapOn:
+          id: ${output.ids.checkout.bookingTermsCheckbox}
+      - tapOn:
+          id: ${output.ids.checkout.cancellationTermsCheckbox}
+      - tapOn:
+          id: ${output.ids.checkout.payOrConfirmButton}
+      - extendedWaitUntil:
+          visible:
+            id: ${output.ids.payment.page}
+          timeout: ${output.timeouts.screenTransition}
+
+# Flow 3: Negative case - empty payment form is blocked with field errors
+- runFlow:
+    label: "Negative case: empty payment form is blocked with field errors"
+    commands:
+      - tapOn:
+          id: ${output.ids.payment.payButton}
+      - assertVisible:
+          id: ${output.ids.payment.cardNumberError}
+      - assertVisible:
+          id: ${output.ids.payment.expiryError}
+      - assertVisible:
+          id: ${output.ids.payment.cvcError}
+      - assertVisible:
+          id: ${output.ids.payment.page}
+
+# Flow 4: A well-formed card is still declined; Retry re-enables the form
+- runFlow:
+    label: "A well-formed card is still declined; Retry re-enables the form"
+    commands:
+      - tapOn:
+          id: ${output.ids.payment.cardNumberField}
+      - inputText: "4111111111111111"
+      - tapOn:
+          id: ${output.ids.payment.expiryField}
+      - inputText: "1230"
+      - tapOn:
+          id: ${output.ids.payment.cvcField}
+      - inputText: "123"
+      - hideKeyboard
+      - tapOn:
+          id: ${output.ids.payment.payButton}
+
+      - extendedWaitUntil:
+          visible:
+            id: ${output.ids.paymentResult.declinedPage}
+          timeout: ${output.timeouts.paymentDecline}
+
+      - tapOn:
+          id: ${output.ids.paymentResult.retryButton}
+      - assertVisible:
+          id: ${output.ids.payment.page}
